@@ -1,0 +1,158 @@
+Retrieve all customer orders with customer details and payment info
+
+SELECT 
+    co.order_id,
+    c.customer_name,
+    c.customer_email,
+    co.invoice_no,
+    co.due_amount,
+    co.order_date,
+    co.order_status,
+    p.payment_mode,
+    p.payment_date
+FROM customer_orders AS co
+JOIN customers AS c ON co.customer_id = c.customer_id
+LEFT JOIN payments AS p ON co.invoice_no = p.invoice_no
+ORDER BY co.order_date DESC;
+
+Explanation:
+
+Joins customer_orders ↔ customers ↔ payments.
+
+Combines customer details, order info, and payment method/date.
+
+Uses LEFT JOIN for payments so unpaid orders still show.
+
+Sorted by newest orders.
+
+Complexity: 3-table join + aggregation of data from related tables.
+
+
+//
+
+
+Find total sales revenue per customer
+
+SELECT 
+    c.customer_name,
+    SUM(co.due_amount) AS total_spent,
+    COUNT(co.order_id) AS total_orders
+FROM customer_orders AS co
+JOIN customers AS c ON co.customer_id = c.customer_id
+WHERE co.order_status = 'Complete'
+GROUP BY c.customer_id
+ORDER BY total_spent DESC;
+
+Explanation:
+
+Aggregates all completed orders per customer.
+
+Uses SUM() and COUNT() with GROUP BY.
+
+Helps find the best (most valuable) customers.
+
+Complexity: Aggregation + filtering + grouping.
+
+//
+
+List all products with their category and manufacturer names
+
+SELECT 
+    p.product_id,
+    p.product_title,
+    pc.p_cat_title AS product_category,
+    c.cat_title AS main_category,
+    m.manufacturer_title
+FROM products AS p
+JOIN product_categories AS pc ON p.p_cat_id = pc.p_cat_id
+JOIN categories AS c ON p.cat_id = c.cat_id
+JOIN manufacturers AS m ON p.manufacturer_id = m.manufacturer_id
+ORDER BY c.cat_title, pc.p_cat_title;
+
+
+Explanation:
+
+Combines 4 related tables to show product details clearly.
+
+Useful for admin dashboards.
+
+Complexity: Multi-join with 4 tables.
+
+
+///
+
+Show pending orders with total number of items per customer
+
+SELECT 
+    c.customer_name,
+    COUNT(po.order_id) AS total_pending_orders,
+    SUM(po.qty) AS total_items_pending
+FROM pending_orders AS po
+JOIN customers AS c ON po.customer_id = c.customer_id
+WHERE po.order_status = 'pending'
+GROUP BY c.customer_id;
+
+Explanation:
+
+Filters only pending orders.
+
+Uses SUM() and COUNT() to summarize pending quantities.
+
+Complexity: Conditional aggregation with GROUP BY.
+
+
+//
+
+
+List products on customer wishlist with price and category
+
+SELECT 
+    w.wishlist_id,
+    c.customer_name,
+    p.product_title,
+    p.product_price,
+    pc.p_cat_title
+FROM wishlist AS w
+JOIN customers AS c ON w.customer_id = c.customer_id
+JOIN products AS p ON w.product_id = p.product_id
+JOIN product_categories AS pc ON p.p_cat_id = pc.p_cat_id;
+
+
+Explanation:
+
+Combines wishlist with customer and product info.
+
+Useful for showing saved items on profile pages.
+
+Complexity: 4-table join.
+
+
+//
+
+
+Find which manufacturer’s products sold the most
+
+SELECT 
+    m.manufacturer_title,
+    COUNT(co.order_id) AS total_orders,
+    SUM(co.qty) AS total_items_sold,
+    SUM(co.due_amount) AS total_revenue
+FROM customer_orders AS co
+JOIN products AS p ON co.invoice_no IN (
+    SELECT invoice_no FROM pending_orders WHERE product_id = p.product_id
+)
+JOIN manufacturers AS m ON p.manufacturer_id = m.manufacturer_id
+WHERE co.order_status = 'Complete'
+GROUP BY m.manufacturer_id
+ORDER BY total_revenue DESC;
+
+
+Explanation:
+
+Uses a subquery to connect orders → products → manufacturer.
+
+Aggregates total revenue per brand.
+
+Complexity: Nested subquery + multi-table join.
+
+
