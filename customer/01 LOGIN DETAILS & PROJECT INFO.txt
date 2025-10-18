@@ -1,3 +1,12 @@
+<<<<<<< HEAD
+=======
+**Log on to codeastro.com for more projects!***
+
+**Database Name: ecom_store**
+
+
+**Recommended PHP Version 5.6 and Newer**
+>>>>>>> ef718280b18d27a6620335a5b1e45e7433978d43
 
 
 **Admin Panel: /admin_area **
